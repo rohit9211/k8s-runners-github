@@ -1,0 +1,59 @@
+# This workflow will build a package using Gradle and then publish it to GitHub packages when a release is created
+# For more information see: https://github.com/actions/setup-java/blob/main/docs/advanced-usage.md#Publishing-using-gradle
+
+name: Sandbox -Build and Deploy
+
+
+on:
+  workflow_dispatch:
+    inputs:
+      logLevel:
+        description: 'environment'
+        required: true
+        default: sandbox
+        
+env:
+  GKE_PROJECT: sandbox 
+  GCR_GKE_PROJECT: sandbox 
+  GITHUB_SHA: ${{ github.sha }}
+  GKE_ZONE: asia-south1
+  GKE_NAME: monitoring-cluster
+  IMAGE: k8s-runner
+  REGISTRY_HOSTNAME: us.gcr.io
+  CHART_NAME: k8s-runner
+  K8_NAMESPACE: runner
+  VALUE_FILE: values-sandbox.yaml
+
+
+jobs:
+  gradle-build-deploy:
+
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - uses: actions/checkout@v2
+      
+      - name: build-login-publish-docker image
+        uses: itsmesuniljacob/build-publish-docker@main
+        with:
+          registry_host: $REGISTRY_HOSTNAME
+          gke_project: $GCR_GKE_PROJECT
+          image_name: $IMAGE
+          google_private_key: ${{ secrets.GOOGLE_PRIVATE_KEY_SANDBOX }}
+          sha: ${{ github.sha }}
+          file: Dockerfile
+
+      # Install helm
+      - name: Install Helm
+        run: |
+          curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
+      # Deploy the Docker image to the GKE cluster
+      - name: Deploy
+        run: |
+          gcloud container clusters get-credentials $GKE_NAME \
+            --zone $GKE_ZONE \
+            --project $GKE_PROJECT
+          helm upgrade --install --namespace=$K8_NAMESPACE --wait $CHART_NAME  deployment/charts/$CHART_NAME  --set image.tag=$GITHUB_SHA -f deployment/charts/config/$VALUE_FILE

@@ -1,59 +1,41 @@
-# This workflow will build a package using Gradle and then publish it to GitHub packages when a release is created
-# For more information see: https://github.com/actions/setup-java/blob/main/docs/advanced-usage.md#Publishing-using-gradle
+name: Deploy-to-GKE
 
-name: Sandbox -Build and Deploy
+on: [workflow_dispatch]
 
-
-on:
-  workflow_dispatch:
-    inputs:
-      logLevel:
-        description: 'environment'
-        required: true
-        default: sandbox
-        
 env:
-  GKE_PROJECT: sandbox 
-  GCR_GKE_PROJECT: sandbox 
-  GITHUB_SHA: ${{ github.sha }}
-  GKE_ZONE: asia-south1
-  GKE_NAME: monitoring-cluster
-  IMAGE: k8s-runner
-  REGISTRY_HOSTNAME: us.gcr.io
-  CHART_NAME: k8s-runner
-  K8_NAMESPACE: runner
-  VALUE_FILE: values-sandbox.yaml
-
-
+  GKE_PROJECT: ${{ secrets.GKE_PROJECT }}
+  GKE_CLUSTER: demo-cluster
+  GKE_APP_NAME: k8s-runner
+  GKE_SERVICE: gke-service
+  GKE_SERVICE_ACCOUNT: gke-serviceaccount
+  GKE_DEPLOYMENT_NAME: demo-shop-deployment
+  GKE_REGION: europe-west3
+  GKE_ZONE: europe-west3-a
+  
 jobs:
-  gradle-build-deploy:
-
+  Deploy:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
 
     steps:
-      - uses: actions/checkout@v2
-      
-      - name: build-login-publish-docker image
-        uses: itsmesuniljacob/build-publish-docker@main
-        with:
-          registry_host: $REGISTRY_HOSTNAME
-          gke_project: $GCR_GKE_PROJECT
-          image_name: $IMAGE
-          google_private_key: ${{ secrets.GOOGLE_PRIVATE_KEY_SANDBOX }}
-          sha: ${{ github.sha }}
-          file: Dockerfile
+    - name: Checkout
+      uses: actions/checkout@v3
 
-      # Install helm
-      - name: Install Helm
-        run: |
-          curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
-      # Deploy the Docker image to the GKE cluster
-      - name: Deploy
-        run: |
-          gcloud container clusters get-credentials $GKE_NAME \
-            --zone $GKE_ZONE \
-            --project $GKE_PROJECT
-          helm upgrade --install --namespace=$K8_NAMESPACE --wait $CHART_NAME  deployment/charts/$CHART_NAME  --set image.tag=$GITHUB_SHA -f deployment/charts/config/$VALUE_FILE
+    # Setup gcloud CLI
+    - uses: google-github-actions/setup-gcloud@v0.6.0
+      with:
+        service_account_key: ${{ secrets.GKE_SA_KEY }}
+        project_id: ${{ secrets.GKE_PROJECT }}
+        export_default_credentials: true 
+
+    # Get the GKE credentials so we can deploy to the cluster
+    - uses: google-github-actions/get-gke-credentials@v0.5.0
+      with:
+        cluster_name: ${{ env.GKE_CLUSTER }}
+        location: ${{ env.GKE_ZONE }}
+        credentials: ${{ secrets.GKE_SA_KEY }}
+
+    # Deploy the new Docker image to the GKE cluster
+    - name: Deploy
+      #working-directory: release/src/Tailwind.Traders.Web
+      run: |-
+        envsubst < deployment.yml | kubectl apply -f -

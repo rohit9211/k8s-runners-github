@@ -6,10 +6,10 @@ on: [workflow_dispatch]
 env:
   # TODO: Change variable to your image's name.
   IMAGE: github-k8s-runner
-  #GITHUB_SHA: ${{ github.sha }}
+  GITHUB_SHA: ${{ github.sha }}
   GKE_PROJECT: ${{ secrets.GKE_PROJECT }}
   GKE_CLUSTER: demo-cluster
-  GKE_APP_NAME: k8s-runner
+  GKE_APP_NAME: demo-shop
   GKE_SERVICE: gke-service
   GKE_SERVICE_ACCOUNT: gke-serviceaccount
   GKE_DEPLOYMENT_NAME: demo-shop-deployment
@@ -18,27 +18,24 @@ env:
 
 jobs:
   Build:
+    # Ensure lintAllTheThings job passes before pushing image.
+    # needs: lintAllTheThings
+
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout
-      uses: actions/checkout@v3
+      - uses: actions/checkout@v2
+        with:
+          # Disabling shallow clone is recommended for improving relevancy of reporting
+          fetch-depth: 0
 
-    # Setup gcloud CLI
-    - uses: google-github-actions/setup-gcloud@v0.6.0
-      with:
-        service_account_key: ${{ secrets.GKE_SA_KEY }}
-        project_id: ${{ secrets.GKE_PROJECT }}
-        export_default_credentials: true 
-
-    # Build the Docker image
-    - name: Build and Push
-      #working-directory: ch9_release/src/Tailwind.Traders.Web
-      run: |-  
-        docker build \
+      - name: Build image
+        #run: docker build -t "us.gcr.io/ebo-sandbox/$IMAGE:${GITHUB_SHA:0:8}" .
+        run: |-  
+         docker build \
           --tag "$GKE_REGION-docker.pkg.dev/$GKE_PROJECT/$GKE_PROJECT/$GKE_APP_NAME:$GITHUB_SHA" \
           --build-arg GITHUB_SHA="$GITHUB_SHA" \
           --build-arg GITHUB_REF="$GITHUB_REF" \
           .
-        gcloud auth configure-docker $GKE_REGION-docker.pkg.dev --quiet
-        docker push "$GKE_REGION-docker.pkg.dev/$GKE_PROJECT/$GKE_PROJECT/$GKE_APP_NAME:$GITHUB_SHA"  
+         gcloud auth configure-docker $GKE_REGION-docker.pkg.dev --quiet
+         docker push "$GKE_REGION-docker.pkg.dev/$GKE_PROJECT/$GKE_PROJECT/$GKE_APP_NAME:$GITHUB_SHA"

@@ -1,0 +1,63 @@
+---
+name: K8s Multi runner
+
+on: [workflow_dispatch]
+
+jobs:
+  Build:
+    name: Build Docker
+    
+    runs-on: self-hosted
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Build docker
+      working-directory: docker/
+      run: |
+        docker build -t test .
+  build-2:
+    name: Build Docker
+    runs-on: self-hosted
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Build docker
+      working-directory: docker/
+      run: |
+        docker build -t test .
+  build-3:
+    name: Build Docker
+    runs-on: self-hosted
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Build docker
+      working-directory: docker/
+      run: |
+        docker build -t test .
+  build-4:
+    name: Build Docker
+    runs-on: self-hosted
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Build docker
+      working-directory: docker/
+      run: |
+        docker build -t test .
+  build-5:
+    name: Build Docker
+    runs-on: self-hosted
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Build docker
+      working-directory: docker/
+      run: |
+        docker build -t test .

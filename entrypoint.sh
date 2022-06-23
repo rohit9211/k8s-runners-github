@@ -1,6 +1,6 @@
 #!/bin/sh
-registration_url="https://github.com/${GITHUB_OWNER}"
-token_url="https://api.github.com/orgs/${GITHUB_OWNER}/actions/runners/registration-token"
+registration_url="https://github.com/${GITHUB_OWNER}/${GITHUB_REPOSITORY}"
+token_url="https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPOSITORY}/actions/runners/registration-token"
 
 echo "# Requesting runner registration token for ${GITHUB_OWNER} at '${token_url}'"
 payload=$(curl -sX POST -H "Authorization: token ${GITHUB_PAT}" "${token_url}")

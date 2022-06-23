@@ -64,4 +64,5 @@ RUN curl -Ls https://github.com/actions/runner/releases/download/v${GITHUB_RUNNE
 # Entrypoint
 # COPY --chown=github:github entrypoint.sh ./entrypoint.sh
 COPY entrypoint.sh ./entrypoint.sh
+RUN chmod u+x ./entrypoint.sh
 ENTRYPOINT ["./entrypoint.sh"]

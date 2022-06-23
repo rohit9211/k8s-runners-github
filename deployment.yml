@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: github-runner
+  name: k8s-runner
   labels:
     app: github-runner
 spec:
@@ -23,7 +23,7 @@ spec:
             - name: RUNNER_NAME_PREFIX
               value: "runner-pool-"
             - name: "RUNNER_LABELS"
-              value: "k8s,core-app"
+              value: "k8s,self-runner"
             - name: GITHUB_PAT # stored separately in a Kubernetes secret
               valueFrom:
                 secretKeyRef:

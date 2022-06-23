@@ -20,10 +20,12 @@ spec:
           env:
             - name: GITHUB_OWNER
               value: $GITHUB_REPOSITORY_OWNER
+            - name: GITHUB_REPOSITORY
+              value: k8s-runner
             - name: RUNNER_NAME_PREFIX
               value: "runner-pool-"
             - name: "RUNNER_LABELS"
-              value: "k8s,self-runner"
+              value: "k8s,k8s-app"
             - name: GITHUB_PAT # stored separately in a Kubernetes secret
               valueFrom:
                 secretKeyRef:

@@ -9,7 +9,7 @@ env:
   GITHUB_SHA: ${{ github.sha }}
   GKE_PROJECT: ${{ secrets.GKE_PROJECT }}
   GKE_CLUSTER: demo-cluster
-  GKE_APP_NAME: k8s-runner
+  GKE_APP_NAME: k8s-runner-app
   GKE_SERVICE: gke-service
   GKE_SERVICE_ACCOUNT: gke-serviceaccount
   GKE_DEPLOYMENT_NAME: demo-shop-deployment
